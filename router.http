@@ -1,0 +1,13 @@
+GET http://localhost:5000/users
+
+###
+POST http://localhost:5000/register 
+Content-Type: application/json
+
+{
+  "username": "alice_wonder",
+  "email": "alice@example.com",
+  "password": "Alice123!",
+  "profileImage": "https://randomuser.me/api/portraits/women/2.jpg",
+  "role": "user"
+}
