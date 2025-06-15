@@ -5,12 +5,29 @@ const jwt = require("jsonwebtoken");
 const UserQueries = {
   getUsers: asyncHandler(async (request, response) => {
     const users = await User.find();
-    response.send(users);
+    response.status(200).json({
+      users: users,
+    });
   }),
-  updatePassword: async (request, response) => {
-    const user = await User.findById(request.id);
-    console.log(user);
-  },
+  updatePassword: asyncHandler(async (request, response) => {
+    const { email, password, newPassword } = request.body;
+    const user = await User.findOne({ email });
+    if (!user) {
+      response.status(404);
+      throw new Error("UserNot Found");
+    }
+    const isPassword = await bcrypt.compare(password, user.password);
+    if (!isPassword) {
+      response.status(401);
+      throw new Error("password wrong!");
+    }
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    const updateUser = await User({ ...user, password: hashedPassword });
+    updateUser.save();
+    response.status(201).json({
+      message: "password updated successful",
+    });
+  }),
   userRegister: asyncHandler(async (request, response) => {
     const { password, email } = request.body;
     const hashedPassword = await bcrypt.hash(password, 10);
@@ -21,6 +38,9 @@ const UserQueries = {
     }
     const user = new User({ ...request.body, password: hashedPassword });
     await user.save();
+    response.status(201).json({
+      message: "register successful",
+    });
   }),
   userLogin: asyncHandler(async (request, response) => {
     const { email, password } = request.body;
